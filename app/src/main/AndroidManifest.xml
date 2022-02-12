@@ -4,6 +4,7 @@
     package="com.app.composewalls">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SET_WALLPAPER" />
 
     <application
         android:allowBackup="false"
@@ -15,7 +16,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         tools:ignore="DataExtractionRules">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.app.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.ComposeWalls">
             <intent-filter>
