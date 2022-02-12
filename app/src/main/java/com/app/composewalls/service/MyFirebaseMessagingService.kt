@@ -6,7 +6,7 @@ import com.google.firebase.messaging.RemoteMessage
 
 private const val TAG = "MyFirebaseMessaging"
 
-class MyFirebaseMessagingService: FirebaseMessagingService() {
+class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(p0: RemoteMessage) {
         super.onMessageReceived(p0)
         Log.e(TAG, "onMessageReceived: $p0")

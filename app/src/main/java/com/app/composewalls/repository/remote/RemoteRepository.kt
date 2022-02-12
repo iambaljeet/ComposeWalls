@@ -1,6 +1,5 @@
 package com.app.composewalls.repository.remote
 
-import androidx.lifecycle.MutableLiveData
 import com.app.composewalls.constants.NetworkConstants
 import com.app.composewalls.model.*
 import com.google.firebase.firestore.DocumentSnapshot
@@ -22,65 +21,77 @@ object RemoteRepository {
         .document(NetworkConstants.WALLPAPER_DOC)
 
 
-    fun getCategories(lastDocument: DocumentSnapshot? = null): Flow<ResultData<CategoriesData>> = callbackFlow {
-        fireStoreBase.collection(NetworkConstants.CATEGORIES)
-            .orderBy(NetworkConstants.CATEGORY_NAME, Query.Direction.DESCENDING).limit(10)
-            .startAfter(lastDocument)
-            .get()
-            .addOnCompleteListener { task ->
-                if (task.isComplete && task.exception == null) {
-                    val querySnapshot = task.result
-
-                    val categoriesItemList: MutableList<CategoriesItem> = querySnapshot.toObjects(
-                        CategoriesItem::class.java
-                    )
-
-                    if (categoriesItemList.isNotEmpty()) {
-                        val lastDoc = querySnapshot.documents.last()
-                        val categoriesData = CategoriesData(categoriesItemList, lastDoc)
-                        trySend(ResultData.Success(categoriesData))
-                    } else {
-                        trySend(ResultData.NoData())
-                    }
-                    close()
-                } else {
-                    trySend(ResultData.Failed(task.exception?.message, task.exception))
-                    close()
-                }
-            }
-    }
-
-    fun getTopWallpapers(lastDocument: DocumentSnapshot? = null): Flow<ResultData<WallpaperData>> = callbackFlow {
-        fireStoreBase.collection(NetworkConstants.WALLPAPERS)
-            .orderBy(NetworkConstants.WALLPAPER_TIMESTAMP, Query.Direction.DESCENDING).limit(10)
-            .startAfter(lastDocument)
-            .get()
-            .addOnCompleteListener { task ->
-                if (task.isComplete && task.exception == null) {
-                    val querySnapshot = task.result
-
-                    val wallpapersItemList: MutableList<WallpapersItem> = querySnapshot.toObjects(
-                        WallpapersItem::class.java
-                    )
-
-                    if (wallpapersItemList.isNotEmpty()) {
-                        val lastDoc = querySnapshot.documents.last()
-                        val wallpaperData = WallpaperData(wallpapersItemList, lastDoc)
-                        trySend(ResultData.Success(wallpaperData))
-                    } else {
-                        trySend(ResultData.NoData())
-                    }
-                    close()
-                } else {
-                    trySend(ResultData.Failed(task.exception?.message, task.exception))
-                    close()
-                }
-            }
-    }
-
-    fun getWallpapersByCategory(categoryId: String, lastDocument: DocumentSnapshot? = null): Flow<ResultData<WallpaperData>> =
+    fun getCategories(lastDocument: DocumentSnapshot? = null): Flow<ResultData<CategoriesData>> =
         callbackFlow {
-            val wallpaperByCategoryDataLiveData = MutableLiveData<ResultData<WallpaperData>>()
+            send(ResultData.Loading())
+
+            fireStoreBase.collection(NetworkConstants.CATEGORIES)
+                .orderBy(NetworkConstants.CATEGORY_NAME, Query.Direction.DESCENDING).limit(10)
+                .startAfter(lastDocument)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isComplete && task.exception == null) {
+                        val querySnapshot = task.result
+
+                        val categoriesItemList: MutableList<CategoriesItem> =
+                            querySnapshot.toObjects(
+                                CategoriesItem::class.java
+                            )
+
+                        if (categoriesItemList.isNotEmpty()) {
+                            val lastDoc = querySnapshot.documents.last()
+                            val categoriesData = CategoriesData(categoriesItemList, lastDoc)
+                            trySend(ResultData.Success(categoriesData))
+                        } else {
+                            trySend(ResultData.NoData())
+                        }
+                        close()
+                    } else {
+                        trySend(ResultData.Failed(task.exception?.message, task.exception))
+                        close()
+                    }
+                }
+        }
+
+    fun getTopWallpapers(lastDocument: DocumentSnapshot? = null): Flow<ResultData<WallpaperData>> =
+        callbackFlow {
+            send(ResultData.Loading())
+
+            fireStoreBase.collection(NetworkConstants.WALLPAPERS)
+                .orderBy(NetworkConstants.WALLPAPER_TIMESTAMP, Query.Direction.DESCENDING).limit(10)
+                .startAfter(lastDocument)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isComplete && task.exception == null) {
+                        val querySnapshot = task.result
+
+                        val wallpapersItemList: MutableList<WallpapersItem> =
+                            querySnapshot.toObjects(
+                                WallpapersItem::class.java
+                            )
+
+                        if (wallpapersItemList.isNotEmpty()) {
+                            val lastDoc = querySnapshot.documents.last()
+                            val wallpaperData = WallpaperData(wallpapersItemList, lastDoc)
+                            trySend(ResultData.Success(wallpaperData))
+                        } else {
+                            trySend(ResultData.NoData())
+                        }
+                        close()
+                    } else {
+                        trySend(ResultData.Failed(task.exception?.message, task.exception))
+                        close()
+                    }
+                }
+        }
+
+    fun getWallpapersByCategory(
+        categoryId: String,
+        lastDocument: DocumentSnapshot? = null
+    ): Flow<ResultData<WallpaperData>> =
+        callbackFlow {
+            send(ResultData.Loading())
+
             fireStoreBase.collection(NetworkConstants.WALLPAPERS)
                 .whereEqualTo(NetworkConstants.CATEGORY_ID, categoryId).limit(10)
                 .startAfter(lastDocument)
@@ -109,34 +120,43 @@ object RemoteRepository {
                 }
         }
 
-    fun getAllWallpapers(lastDocument: DocumentSnapshot? = null): Flow<ResultData<WallpaperData>> = callbackFlow {
-        fireStoreBase.collection(NetworkConstants.WALLPAPERS).limit(10)
-            .startAfter(lastDocument)
-            .get()
-            .addOnCompleteListener { task ->
-                if (task.isComplete && task.exception == null) {
-                    val querySnapshot = task.result
+    fun getAllWallpapers(lastDocument: DocumentSnapshot? = null): Flow<ResultData<WallpaperData>> =
+        callbackFlow {
+            send(ResultData.Loading())
 
-                    val wallpapersItemList: MutableList<WallpapersItem> = querySnapshot.toObjects(
-                        WallpapersItem::class.java
-                    )
+            fireStoreBase.collection(NetworkConstants.WALLPAPERS).limit(10)
+                .startAfter(lastDocument)
+                .get()
+                .addOnCompleteListener { task ->
+                    if (task.isComplete && task.exception == null) {
+                        val querySnapshot = task.result
 
-                    if (wallpapersItemList.isNotEmpty()) {
-                        val lastDoc = querySnapshot.documents.last()
-                        val wallpaperData = WallpaperData(wallpapersItemList, lastDoc)
-                        trySend(ResultData.Success(wallpaperData))
+                        val wallpapersItemList: MutableList<WallpapersItem> =
+                            querySnapshot.toObjects(
+                                WallpapersItem::class.java
+                            )
+
+                        if (wallpapersItemList.isNotEmpty()) {
+                            val lastDoc = querySnapshot.documents.last()
+                            val wallpaperData = WallpaperData(wallpapersItemList, lastDoc)
+                            trySend(ResultData.Success(wallpaperData))
+                        } else {
+                            trySend(ResultData.NoData())
+                        }
+                        close()
                     } else {
-                        trySend(ResultData.NoData())
+                        trySend(ResultData.Failed(task.exception?.message, task.exception))
+                        close()
                     }
-                    close()
-                } else {
-                    trySend(ResultData.Failed(task.exception?.message, task.exception))
-                    close()
                 }
-            }
-    }
+        }
 
-    fun getCategoryByName(categoryName: String, lastDocument: DocumentSnapshot? = null): Flow<ResultData<CategoriesData>> = callbackFlow {
+    fun getCategoryByName(
+        categoryName: String,
+        lastDocument: DocumentSnapshot? = null
+    ): Flow<ResultData<CategoriesData>> = callbackFlow {
+        send(ResultData.Loading())
+
         fireStoreBase.collection(NetworkConstants.CATEGORIES)
             .whereLessThanOrEqualTo(NetworkConstants.CATEGORY_NAME, categoryName).limit(10)
             .startAfter(lastDocument)
